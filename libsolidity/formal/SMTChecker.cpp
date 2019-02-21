@@ -273,6 +273,23 @@ void SMTChecker::endVisit(VariableDeclarationStatement const& _varDecl)
 		);
 }
 
+bool SMTChecker::visit(Assignment const& _assignment)
+{
+	// Erase knowledge about references before the right hand side smt::Expression is created
+	// to take the new value into account.
+	if (Identifier const* identifier = dynamic_cast<Identifier const*>(&_assignment.leftHandSide()))
+	{
+		VariableDeclaration const& decl = dynamic_cast<VariableDeclaration const&>(*identifier->annotation().referencedDeclaration);
+		solAssert(knownVariable(decl), "");
+		if (decl.hasReferenceOrMappingType())
+			resetVariables([&](VariableDeclaration const& _var) {
+				return _var != decl && equalNonValueTypes(_var, decl);
+			});
+	}
+
+	return true;
+}
+
 void SMTChecker::endVisit(Assignment const& _assignment)
 {
 	if (_assignment.assignmentOperator() != Token::Assign)
@@ -533,13 +550,6 @@ void SMTChecker::visitGasLeft(FunctionCall const& _funCall)
 	setUnknownValue(*symbolicVar);
 	if (index > 0)
 		m_interface->addAssertion(symbolicVar->currentValue() <= symbolicVar->valueAtIndex(index - 1));
-}
-
-void SMTChecker::eraseArrayKnowledge()
-{
-	for (auto const& var: m_variables)
-		if (var.first->annotation().type->category() == Type::Category::Mapping)
-			newValue(*var.first);
 }
 
 void SMTChecker::inlineFunctionCall(FunctionCall const& _funCall)
@@ -804,7 +814,6 @@ void SMTChecker::endVisit(IndexAccess const& _indexAccess)
 void SMTChecker::arrayAssignment()
 {
 	m_arrayAssignmentHappened = true;
-	eraseArrayKnowledge();
 }
 
 void SMTChecker::arrayIndexAssignment(Assignment const& _assignment)
@@ -814,6 +823,12 @@ void SMTChecker::arrayIndexAssignment(Assignment const& _assignment)
 	{
 		auto const& varDecl = dynamic_cast<VariableDeclaration const&>(*id->annotation().referencedDeclaration);
 		solAssert(knownVariable(varDecl), "");
+
+		if (varDecl.hasReferenceOrMappingType())
+			resetVariables([&](VariableDeclaration const& _var) {
+				return _var != varDecl && equalNonValueTypes(varDecl, _var);
+			});
+
 		smt::Expression store = smt::Expression::store(
 			m_variables[&varDecl]->currentValue(),
 			expr(*indexAccess.indexExpression()),
@@ -1322,6 +1337,26 @@ void SMTChecker::resetVariables(function<bool(VariableDeclaration const&)> const
 		if (_filter(*_variable.first))
 			this->resetVariable(*_variable.first);
 	});
+}
+
+bool SMTChecker::equalNonValueTypes(VariableDeclaration const& _var1, VariableDeclaration const& _var2)
+{
+	if (!_var1.hasReferenceOrMappingType() || !_var2.hasReferenceOrMappingType())
+		return false;
+	TypePointer type1 = _var1.type();
+	TypePointer type2 = _var2.type();
+	if (type1->category() == Type::Category::Mapping || type2->category() == Type::Category::Mapping)
+		return *type1 == *type2;
+	auto refType1 = dynamic_cast<ReferenceType const*>(type1.get());
+	solAssert(refType1, "");
+	auto refType2 = dynamic_cast<ReferenceType const*>(type2.get());
+	solAssert(refType2, "");
+	if (refType1->location() == DataLocation::Memory || refType2->location() == DataLocation::Memory)
+		return *type1 == *type2;
+	solAssert(refType1->location() == DataLocation::Storage, "");
+	solAssert(refType2->location() == DataLocation::Storage, "");
+	return *ReferenceType::copyForLocationIfReference(DataLocation::Storage, type1) ==
+		*ReferenceType::copyForLocationIfReference(DataLocation::Storage, type2);
 }
 
 void SMTChecker::mergeVariables(vector<VariableDeclaration const*> const& _variables, smt::Expression const& _condition, VariableIndices const& _indicesEndTrue, VariableIndices const& _indicesEndFalse)
