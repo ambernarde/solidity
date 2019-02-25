@@ -59,10 +59,12 @@ This means that, for example ``~int256(0) == int256(-1)``.
 Shifts
 ^^^^^^
 
-The result of a shift operation has the type of the left operand. The
-expression ``x << y`` is equivalent to ``x * 2**y``, and, for positive integers,
-``x >> y`` is equivalent to ``x / 2**y``. For negative ``x``, ``x >> y``
-is equivalent to dividing by a power of ``2`` while rounding down (towards negative infinity).
+The result of a shift operation has the type of the left operand, truncating the result to match the type.
+
+For positive and negative integers, the expression ``x << y`` is equivalent to ``x * 2**y``.
+
+For positive integers,  ``x >> y`` is equivalent to ``x / 2**y``. For negative ``x``, ``x >> y`` is equivalent to dividing by a power of ``2`` while rounding down (towards negative infinity).
+
 Shifting by a negative amount throws a runtime exception.
 
 .. warning::
