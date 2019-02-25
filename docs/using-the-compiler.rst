@@ -120,6 +120,7 @@ at each version. Backward compatibility is not guaranteed between each version.
 - ``constantinople`` (still in progress)
    - opcodes ``shl``, ``shr`` and ``sar`` are available in assembly.
    - shifting operators use shifting opcodes and thus need less gas.
+- ``petersburg`` (still in progress)
 
 .. _compiler-api:
 
@@ -193,7 +194,7 @@ Input Description
           // Lower values will optimize more for initial deployment cost, higher values will optimize more for high-frequency usage.
           "runs": 200
         },
-        "evmVersion": "byzantium", // Version of the EVM to compile for. Affects type checking and code generation. Can be homestead, tangerineWhistle, spuriousDragon, byzantium or constantinople
+        "evmVersion": "byzantium", // Version of the EVM to compile for. Affects type checking and code generation. Can be homestead, tangerineWhistle, spuriousDragon, byzantium, constantinople or petersburg
         // Metadata settings (optional)
         "metadata": {
           // Use only literal content and not URLs (false by default)
