@@ -1008,8 +1008,10 @@ BOOST_AUTO_TEST_CASE(optimizer_settings_details_different)
 	BOOST_CHECK(optimizer["details"]["jumpdestRemover"].asBool() == true);
 	BOOST_CHECK(optimizer["details"]["orderLiterals"].asBool() == false);
 	BOOST_CHECK(optimizer["details"]["peephole"].asBool() == true);
+	BOOST_CHECK(optimizer["details"]["stackAllocation"].asBool() == false);
+	BOOST_CHECK(optimizer["details"]["yul"].asBool() == true);
 	BOOST_CHECK(optimizer["details"]["yulDetails"].isObject());
-	BOOST_CHECK_EQUAL(optimizer["details"].getMemberNames().size(), 8);
+	BOOST_CHECK_EQUAL(optimizer["details"].getMemberNames().size(), 9);
 	BOOST_CHECK(optimizer["runs"].asUInt() == 600);
 }
 

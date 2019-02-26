@@ -298,7 +298,7 @@ boost::optional<Json::Value> checkOptimizerKeys(Json::Value const& _input)
 
 boost::optional<Json::Value> checkOptimizerDetailsKeys(Json::Value const& _input)
 {
-	static set<string> keys{"peephole", "jumpdestRemover", "orderLiterals", "deduplicate", "cse", "constantOptimizer", "yul", "yulDetails"};
+	static set<string> keys{"peephole", "jumpdestRemover", "orderLiterals", "deduplicate", "cse", "constantOptimizer", "stackAllocation", "yul", "yulDetails"};
 	return checkKeys(_input, keys, "settings.optimizer.details");
 }
 
@@ -818,6 +818,8 @@ boost::optional<Json::Value> StandardCompiler::parseOptimizerSettings(Json::Valu
 		if (auto error = checkOptimizerDetail(details, "cse", settings.runCSE))
 			return *error;
 		if (auto error = checkOptimizerDetail(details, "constantOptimizer", settings.runConstantOptimiser))
+			return *error;
+		if (auto error = checkOptimizerDetail(details, "stackAllocation", settings.optimizeStackAllocation))
 			return *error;
 		if (auto error = checkOptimizerDetail(details, "yul", settings.runYulOptimiser))
 			return *error;

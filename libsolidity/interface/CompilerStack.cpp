@@ -942,6 +942,7 @@ string CompilerStack::createMetadata(Contract const& _contract) const
 		details["deduplicate"] = m_optimiserSettings.runDeduplicate;
 		details["cse"] = m_optimiserSettings.runCSE;
 		details["constantOptimizer"] = m_optimiserSettings.runConstantOptimiser;
+		details["stackAllocation"] = m_optimiserSettings.optimizeStackAllocation;
 		details["yul"] = m_optimiserSettings.runYulOptimiser;
 		details["yulDetails"] = Json::objectValue;
 

@@ -209,6 +209,9 @@ Input Description
             "cse": false,
             // Optimize representation of literal numbers and strings in code.
             "constantOptimizer": false,
+            // Improve allocation of stack slots for variables, can free up stack slots early.
+            // This can only be activated through the details here.
+            "stackAllocation": false,
             // The new yul optimizer. Mostly operates on the code of ABIEncoderV2.
             // It can only be activated through the details here.
             "yul": false,
