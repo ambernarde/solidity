@@ -28,62 +28,84 @@
 using namespace yul;
 using namespace std;
 
+VarNameCleaner::VarNameCleaner(
+	Block const& _ast,
+	Dialect const& _dialect,
+	set<YulString> _blacklist
+):
+	m_dialect{_dialect},
+	m_blacklist{std::move(_blacklist)},
+	m_translatedNames{}
+{
+	for (auto const& statement: _ast.statements)
+		if (statement.type() == typeid(FunctionDefinition))
+			m_blacklist.insert(boost::get<FunctionDefinition>(statement).name);
+	m_usedNames = m_blacklist;
+}
+
 void VarNameCleaner::operator()(FunctionDefinition& _funDef)
 {
+	yulAssert(!m_insideFunction, "");
+	m_insideFunction = true;
+
+	auto globalUsedNames = std::move(m_usedNames);
 	m_usedNames = m_blacklist;
-	m_translatedNames.clear();
+	map<YulString, YulString> globalTranslatedNames;
+	swap(globalTranslatedNames, m_translatedNames);
 
 	ASTModifier::operator()(_funDef);
+
+	swap(globalUsedNames, m_usedNames);
+	swap(globalTranslatedNames, m_translatedNames);
+
+	m_insideFunction = false;
 }
 
 void VarNameCleaner::operator()(VariableDeclaration& _varDecl)
 {
 	for (TypedName& typedName: _varDecl.variables)
-		if (auto newName = makeCleanName(typedName.name))
+	{
+		if (auto newName = findCleanName(typedName.name))
+		{
+			m_translatedNames[typedName.name] = *newName;
 			typedName.name = *newName;
+		}
+		m_usedNames.insert(typedName.name);
+	}
 
 	ASTModifier::operator()(_varDecl);
 }
 
 void VarNameCleaner::operator()(Identifier& _identifier)
 {
-	if (auto newName = newlyAssignedName(_identifier.name))
-		_identifier.name = *newName;
-}
-
-boost::optional<YulString> VarNameCleaner::makeCleanName(YulString const& _name)
-{
-	if (auto newName = findCleanName(_name))
-	{
-		m_usedNames.insert(*newName);
-		m_translatedNames[_name] = *newName;
-
-		return newName;
-	}
-
-	// Name isn't used yet, but we need to make sure nobody else does.
-	m_usedNames.insert(_name);
-	return boost::none;
+	auto name = m_translatedNames.find(_identifier.name);
+	if (name != m_translatedNames.end() && name->second != _identifier.name)
+		_identifier.name = name->second;
 }
 
 boost::optional<YulString> VarNameCleaner::findCleanName(YulString const& _name) const
 {
 	if (auto newName = stripSuffix(_name))
 	{
-		if (newName->str().length() != 0 && !m_dialect.builtin(*newName) && !m_usedNames.count(*newName))
+		if (*newName != YulString{} && !isUsedName(*newName))
 			return newName;
 
 		// create new name with suffix (by finding a free identifier)
 		for (size_t i = 1; i < numeric_limits<decltype(i)>::max(); ++i)
 		{
 			YulString newNameSuffixed = YulString{newName->str() + "_" + to_string(i)};
-			if (!m_usedNames.count(newNameSuffixed))
+			if (!isUsedName(newNameSuffixed))
 				return newNameSuffixed;
 		}
 		yulAssert(false, "Exhausted by attempting to find an available suffix.");
 	}
 
 	return boost::none;
+}
+
+bool VarNameCleaner::isUsedName(YulString const& _name) const
+{
+	return m_dialect.builtin(_name) || m_usedNames.count(_name);
 }
 
 boost::optional<YulString> VarNameCleaner::stripSuffix(YulString const& _name) const
@@ -95,13 +117,4 @@ boost::optional<YulString> VarNameCleaner::stripSuffix(YulString const& _name) c
 		return {YulString{suffixMatch.prefix().str()}};
 
 	return boost::none;
-}
-
-boost::optional<YulString> VarNameCleaner::newlyAssignedName(YulString const& _name) const
-{
-	auto n = m_translatedNames.find(_name);
-	if (n != m_translatedNames.end() && n->second != _name)
-		return {n->second};
-	else
-		return boost::none;
 }

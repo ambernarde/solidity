@@ -44,20 +44,16 @@ struct Dialect;
 class VarNameCleaner: public ASTModifier
 {
 public:
-	using BlackList = std::set<YulString>;
-
-	VarNameCleaner(Dialect const& _dialect, BlackList _blacklist = {}):
-		m_dialect{_dialect},
-		m_blacklist{_blacklist},
-		m_usedNames{std::move(_blacklist)},
-		m_translatedNames{}
-	{
-	}
+	VarNameCleaner(
+		Block const& _ast,
+		Dialect const& _dialect,
+		std::set<YulString> _blacklist = {}
+	);
 
 	using ASTModifier::operator();
 	void operator()(VariableDeclaration& _varDecl) override;
 	void operator()(Identifier& _identifier) override;
-	void operator()(FunctionDefinition&) override;
+	void operator()(FunctionDefinition& _funDef) override;
 
 private:
 	/// @returns suffix-stripped name, if a suffix was detected, none otherwise.
@@ -67,26 +63,21 @@ private:
 	/// @returns a trimmed down and "clean name" in case it found one, none otherwise.
 	boost::optional<YulString> findCleanName(YulString const& name) const;
 
-	/// Uses findCleanName to find a clean name, and then remembers it, so future calls
-	/// don't pick that name for their use.
-	///
-	/// @returns a trimmed down and "clean name" in case it found one, none otherwise.
-	boost::optional<YulString> makeCleanName(YulString const& name);
-
-	/// Returns the new name, if one was mapped, or none.
-	boost::optional<YulString> newlyAssignedName(YulString const& _name) const;
-
-	/// Tests whether or not given name is already in used within this pass.
+	/// Tests whether a given name was already used within this pass.
 	bool isUsedName(YulString const& _name) const;
 
 	Dialect const& m_dialect;
-	BlackList m_blacklist;
+	std::set<YulString> m_blacklist;
 
 	/// Set of names that are in use.
 	std::set<YulString> m_usedNames;
 
 	/// map on old name to new name
 	std::map<YulString, YulString> m_translatedNames;
+
+	/// Whether the traverse is inside a function definition.
+	/// Used to assert that a function definition cannot be inside another.
+	bool m_insideFunction = false;
 };
 
 }

@@ -112,7 +112,7 @@ bool YulOptimizerTest::run(ostream& _stream, string const& _linePrefix, bool con
 	else if (m_optimizerStep == "varDeclInitializer")
 		VarDeclInitializer{}(*m_ast);
 	else if (m_optimizerStep == "varNameCleaner")
-		VarNameCleaner{*m_dialect}(*m_ast);
+		VarNameCleaner{*m_ast, *m_dialect}(*m_ast);
 	else if (m_optimizerStep == "forLoopInitRewriter")
 	{
 		disambiguate();

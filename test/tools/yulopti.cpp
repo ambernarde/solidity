@@ -153,7 +153,7 @@ public:
 				(VarDeclInitializer{})(*m_ast);
 				break;
 			case 'l':
-				VarNameCleaner{*m_dialect}(*m_ast);
+				VarNameCleaner{*m_ast, *m_dialect}(*m_ast);
 				break;
 			case 'x':
 				ExpressionSplitter{*m_dialect, *m_nameDispenser}(*m_ast);
