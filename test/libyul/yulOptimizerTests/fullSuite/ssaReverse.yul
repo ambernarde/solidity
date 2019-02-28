@@ -34,14 +34,16 @@
 // ----
 // fullSuite
 // {
-//     let a, b := abi_decode_t_bytes_calldata_ptr(mload(0), mload(1))
-//     a, b := abi_decode_t_bytes_calldata_ptr(a, b)
-//     a, b := abi_decode_t_bytes_calldata_ptr(a, b)
-//     a, b := abi_decode_t_bytes_calldata_ptr(a, b)
-//     a, b := abi_decode_t_bytes_calldata_ptr(a, b)
-//     a, b := abi_decode_t_bytes_calldata_ptr(a, b)
-//     a, b := abi_decode_t_bytes_calldata_ptr(a, b)
-//     mstore(a, b)
+//     {
+//         let a, b := abi_decode_t_bytes_calldata_ptr(mload(0), mload(1))
+//         a, b := abi_decode_t_bytes_calldata_ptr(a, b)
+//         a, b := abi_decode_t_bytes_calldata_ptr(a, b)
+//         a, b := abi_decode_t_bytes_calldata_ptr(a, b)
+//         a, b := abi_decode_t_bytes_calldata_ptr(a, b)
+//         a, b := abi_decode_t_bytes_calldata_ptr(a, b)
+//         a, b := abi_decode_t_bytes_calldata_ptr(a, b)
+//         mstore(a, b)
+//     }
 //     function abi_decode_t_bytes_calldata_ptr(offset, end) -> arrayPos, length
 //     {
 //         if iszero(slt(add(offset, 0x1f), end))

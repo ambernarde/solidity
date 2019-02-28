@@ -62,16 +62,16 @@ void OptimiserSuite::run(
 
 	Block ast = boost::get<Block>(Disambiguator(*_dialect, _analysisInfo, reservedIdentifiers)(_ast));
 
-	(VarDeclInitializer{})(ast);
-	(FunctionHoister{})(ast);
-	(BlockFlattener{})(ast);
-	(FunctionGrouper{})(ast);
+	VarDeclInitializer{}(ast);
+	FunctionHoister{}(ast);
+	BlockFlattener{}(ast);
+	FunctionGrouper{}(ast);
 	EquivalentFunctionCombiner::run(ast);
 	UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
-	(ForLoopInitRewriter{})(ast);
-	(BlockFlattener{})(ast);
+	ForLoopInitRewriter{}(ast);
+	BlockFlattener{}(ast);
 	StructuralSimplifier{*_dialect}(ast);
-	(BlockFlattener{})(ast);
+	BlockFlattener{}(ast);
 
 	// None of the above can make stack problems worse.
 
@@ -93,7 +93,7 @@ void OptimiserSuite::run(
 		{
 			// still in SSA, perform structural simplification
 			StructuralSimplifier{*_dialect}(ast);
-			(BlockFlattener{})(ast);
+			BlockFlattener{}(ast);
 			UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
 		}
 		{
@@ -131,10 +131,10 @@ void OptimiserSuite::run(
 
 		{
 			// run full inliner
-			(FunctionGrouper{})(ast);
+			FunctionGrouper{}(ast);
 			EquivalentFunctionCombiner::run(ast);
 			FullInliner{ast, dispenser}.run();
-			(BlockFlattener{})(ast);
+			BlockFlattener{}(ast);
 		}
 
 		{
@@ -144,7 +144,7 @@ void OptimiserSuite::run(
 			RedundantAssignEliminator::run(*_dialect, ast);
 			ExpressionSimplifier::run(*_dialect, ast);
 			StructuralSimplifier{*_dialect}(ast);
-			(BlockFlattener{})(ast);
+			BlockFlattener{}(ast);
 			CommonSubexpressionEliminator{*_dialect}(ast);
 			SSATransform::run(ast, dispenser);
 			RedundantAssignEliminator::run(*_dialect, ast);
@@ -172,11 +172,15 @@ void OptimiserSuite::run(
 	Rematerialiser::run(*_dialect, ast);
 	UnusedPruner::runUntilStabilised(*_dialect, ast, reservedIdentifiers);
 
-	(FunctionGrouper{})(ast);
+	FunctionGrouper{}(ast);
 	StackCompressor::run(_dialect, ast);
-	(BlockFlattener{})(ast);
+	BlockFlattener{}(ast);
 
+	FunctionHoister{}(ast);
+	BlockFlattener{}(ast);
 	VarNameCleaner{ast, *_dialect, reservedIdentifiers}(ast);
+	FunctionGrouper{}(ast);
+	StackCompressor::run(_dialect, ast);
 
 	_ast = std::move(ast);
 }
