@@ -8,6 +8,7 @@ Language Features:
 Compiler Features:
  * Inline Assembly: Consider ``extcodehash`` as part of Constantinople.
  * SMTChecker: Do not report underflow/overflow if they always revert. This removes false positives when using ``SafeMath``.
+ * Standard JSON Interface: Allow retrieving metadata without triggering compilation.
  * Static Analyzer: Warn about expressions with custom types when they have no effect.
  * Optimizer: Add rule for shifts with constants for Constantinople.
  * Optimizer: Combine multiple shifts with constant shift-by values into one.
