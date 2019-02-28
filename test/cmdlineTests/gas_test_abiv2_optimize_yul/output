@@ -2,11 +2,11 @@
 ======= gas_test_abiv2_optimize_yul/input.sol:C =======
 Gas estimation:
 construction:
-   676 + 641600 = 642276
+   766 + 736000 = 736766
 external:
-   a():	434
-   b(uint256):	892
-   f1(uint256):	356
+   a():	528
+   b(uint256):	infinite
+   f1(uint256):	infinite
    f2(uint256[],string[],uint16,address):	infinite
    f3(uint16[],string[],uint16,address):	infinite
    f4(uint32[],string[12],bytes[2][],address):	infinite
