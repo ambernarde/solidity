@@ -23,6 +23,7 @@ set(sources
 	SwarmHash.h
 	UTF8.cpp
 	UTF8.h
+	Utils.h
 	vector_ref.h
 	Visitor.h
 	Whiskers.cpp
