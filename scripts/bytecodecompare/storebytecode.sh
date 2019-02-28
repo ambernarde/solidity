@@ -57,6 +57,8 @@ var fs = require('fs')
 
 var compiler = require('./solc-js/wrapper.js')(require('./solc-js/soljson.js'))
 
+console.error("Running", compiler.version())
+
 for (var optimize of [false, true])
 {
     for (var filename of process.argv.slice(2))
@@ -88,6 +90,7 @@ for (var optimize of [false, true])
             {
                 for (var contractName in result['contracts'][filename])
                 {
+                    console.error(result['contracts'][filename][contractName])
                     console.log(filename + ':' + contractName + ' ' + result['contracts'][filename][contractName].evm.bytecode.object)
                     console.log(filename + ':' + contractName + ' ' + result['contracts'][filename][contractName].metadata)
                 }
