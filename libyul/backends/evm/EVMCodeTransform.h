@@ -30,6 +30,8 @@
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
 
+#include <stack>
+
 namespace langutil
 {
 class ErrorReporter;
@@ -57,6 +59,13 @@ struct CodeTransformContext
 	std::map<Scope::Function const*, AbstractAssembly::LabelID> functionEntryIDs;
 	std::map<Scope::Variable const*, int> variableStackHeights;
 	std::map<Scope::Variable const*, unsigned> variableReferences;
+
+	struct ForLoopLabels {
+		AbstractAssembly::LabelID post; ///< jump label to the beginning of the post-expression
+		AbstractAssembly::LabelID done; ///< jump label to the end of the for-loop
+	};
+
+	std::stack<ForLoopLabels> forLoopStack;
 };
 
 /**
@@ -166,6 +175,8 @@ public:
 	void operator()(Switch const& _switch);
 	void operator()(FunctionDefinition const&);
 	void operator()(ForLoop const&);
+	void operator()(Break const&);
+	void operator()(Continue const&);
 	void operator()(Block const& _block);
 
 private:
