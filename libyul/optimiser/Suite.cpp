@@ -176,7 +176,7 @@ void OptimiserSuite::run(
 	StackCompressor::run(_dialect, ast);
 	(BlockFlattener{})(ast);
 
-	VarNameCleaner{ast, *_dialect}(ast);
+	VarNameCleaner{ast, *_dialect, reservedIdentifiers}(ast);
 
 	_ast = std::move(ast);
 }

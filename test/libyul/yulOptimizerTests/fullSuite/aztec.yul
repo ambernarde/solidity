@@ -368,7 +368,7 @@
 //             revert(0, _1)
 //         }
 //     }
-//     function validateCommitment(note, k_1, a_2)
+//     function validateCommitment(note, k, a)
 //     {
 //         let gen_order := 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
 //         let field_order := 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
@@ -376,24 +376,24 @@
 //         let gammaY := calldataload(add(note, 0x60))
 //         let sigmaX := calldataload(add(note, 0x80))
 //         let sigmaY := calldataload(add(note, 0xa0))
-//         if iszero(and(and(and(eq(mod(a_2, gen_order), a_2), gt(a_2, 1)), and(eq(mod(k_1, gen_order), k_1), gt(k_1, 1))), and(eq(addmod(mulmod(mulmod(sigmaX, sigmaX, field_order), sigmaX, field_order), 3, field_order), mulmod(sigmaY, sigmaY, field_order)), eq(addmod(mulmod(mulmod(gammaX, gammaX, field_order), gammaX, field_order), 3, field_order), mulmod(gammaY, gammaY, field_order)))))
+//         if iszero(and(and(and(eq(mod(a, gen_order), a), gt(a, 1)), and(eq(mod(k, gen_order), k), gt(k, 1))), and(eq(addmod(mulmod(mulmod(sigmaX, sigmaX, field_order), sigmaX, field_order), 3, field_order), mulmod(sigmaY, sigmaY, field_order)), eq(addmod(mulmod(mulmod(gammaX, gammaX, field_order), gammaX, field_order), 3, field_order), mulmod(gammaY, gammaY, field_order)))))
 //         {
 //             mstore(0x00, 400)
 //             revert(0x00, 0x20)
 //         }
 //     }
-//     function hashCommitments(notes_5, n_6)
+//     function hashCommitments(notes, n)
 //     {
 //         let i := 0
 //         for {
 //         }
-//         lt(i, n_6)
+//         lt(i, n)
 //         {
 //             i := add(i, 0x01)
 //         }
 //         {
-//             calldatacopy(add(0x300, mul(i, 0x80)), add(add(notes_5, mul(i, 0xc0)), 0x60), 0x80)
+//             calldatacopy(add(0x300, mul(i, 0x80)), add(add(notes, mul(i, 0xc0)), 0x60), 0x80)
 //         }
-//         mstore(0, keccak256(0x300, mul(n_6, 0x80)))
+//         mstore(0, keccak256(0x300, mul(n, 0x80)))
 //     }
 // }

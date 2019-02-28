@@ -22,8 +22,6 @@
 #include <libyul/optimiser/ASTWalker.h>
 #include <libyul/YulString.h>
 
-#include <boost/optional.hpp>
-
 #include <map>
 #include <set>
 #include <string>
@@ -38,8 +36,9 @@ struct Dialect;
  *
  * That is, for each function scope, nested suffixes get flattened and all suffixes
  * renumbered by their base name.
+ * Function names are not modified.
  *
- * Prerequisites: Disambiguator
+ * Prerequisites: Disambiguator, FunctionHoister
  */
 class VarNameCleaner: public ASTModifier
 {
@@ -56,14 +55,18 @@ public:
 	void operator()(FunctionDefinition& _funDef) override;
 
 private:
+	/// Tries to rename a list of variables.
+	void renameVariables(std::vector<TypedName>& _variables);
+
 	/// @returns suffix-stripped name, if a suffix was detected, none otherwise.
-	boost::optional<YulString> stripSuffix(YulString const& _name) const;
+	YulString stripSuffix(YulString const& _name) const;
 
 	/// Looks out for a "clean name" the given @p name could be trimmed down to.
 	/// @returns a trimmed down and "clean name" in case it found one, none otherwise.
-	boost::optional<YulString> findCleanName(YulString const& name) const;
+	YulString findCleanName(YulString const& name) const;
 
-	/// Tests whether a given name was already used within this pass.
+	/// Tests whether a given name was already used within this pass
+	/// or is on the blacklist.
 	bool isUsedName(YulString const& _name) const;
 
 	Dialect const& m_dialect;
@@ -72,7 +75,7 @@ private:
 	/// Set of names that are in use.
 	std::set<YulString> m_usedNames;
 
-	/// map on old name to new name
+	/// Maps old to new names.
 	std::map<YulString, YulString> m_translatedNames;
 
 	/// Whether the traverse is inside a function definition.
