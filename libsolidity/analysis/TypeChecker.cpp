@@ -94,6 +94,63 @@ bool TypeChecker::visit(ContractDefinition const& _contract)
 	for (auto const& n: _contract.subNodes())
 		n->accept(*this);
 
+	// Check base contracts for abi encoder compatibility
+	if (!_contract.sourceUnit().annotation().experimentalFeatures.count(ExperimentalFeature::ABIEncoderV2))
+	{
+		bool addedErrors = false;
+
+		for (auto const& base: _contract.annotation().linearizedBaseContracts)
+		{
+			SecondarySourceLocation errors;
+
+			if (base == &_contract)
+				continue;
+
+			solAssert(base, "Base contract not available.");
+
+			if (base->sourceUnit().annotation().experimentalFeatures.count(ExperimentalFeature::ABIEncoderV2))
+			{
+				for (auto const& func: base->definedFunctions())
+				{
+					if (!func->isPartOfExternalInterface())
+						continue;
+
+					for (auto const& funcParam: func->parameters())
+						if (!typeSupportedByOldABIEncoder(*funcParam->annotation().type, false))
+							errors.append("Parameter type only supported by the new experimental ABI encoder", funcParam->location());
+
+					for (auto const& funcParam: func->returnParameterList()->parameters())
+						if (!typeSupportedByOldABIEncoder(*funcParam->annotation().type, false))
+							errors.append("Return parameter type only supported by the new experimental ABI encoder", funcParam->location());
+				}
+
+				for (auto const& var: base->stateVariables())
+					if (var->isPartOfExternalInterface())
+						if (!typeSupportedByOldABIEncoder(*var->annotation().type, false))
+							errors.append("State variable type only supported by the new experimental ABI encoder", var->location());
+
+			}
+
+			if (!errors.infos.empty())
+			{
+				m_errorReporter.typeError(
+					_contract.location(),
+					errors,
+					std::string("Contract \"") +
+					_contract.name()
+					+ "\" doesn't use the new experimental ABI encoder but wants to inherit from contract \"" +
+					base->name() +
+					"\" which uses types that require it. " +
+					"Use \"pragma experimental ABIEncoderV2;\" for the inheriting contract as well to enable the feature."
+				);
+				addedErrors = true;
+			}
+		}
+
+		if (addedErrors)
+			BOOST_THROW_EXCEPTION(FatalError());
+	}
+
 	return false;
 }
 
